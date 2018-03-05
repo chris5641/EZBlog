@@ -1,0 +1,136 @@
+body {
+    font-family: "Helvetica Neue", Helvetica, Arial, "PingFang SC", "Hiragino Sans GB", "Heiti SC", "Microsoft YaHei", "WenQuanYi Micro Hei", sans-serif;
+}
+
+pre {
+    font-family: "Monaco for Powerline", Menle, 'Courier New', monospace, sans-serif;
+}
+
+a:link {
+    color: black
+}
+
+a:visited {
+    color: black
+}
+
+.blog {
+    padding-bottom: 30px;
+}
+
+.blog-title {
+    font-size: 2em;
+    text-align: center;
+    margin-top: 1em;
+}
+
+.blog-detail {
+    font-size: 1em;
+    text-align: center;
+    padding-bottom: 0.8em;
+    color: gray;
+}
+
+.blog-tag {
+    display: inline;
+}
+
+.blog-content {
+    font-size: 1.1em;
+    font-weight: 400;
+    line-height: 1.4;
+}
+
+.navbar-mystyle {
+    background: #24292e;
+    border-bottom: transparent;
+}
+
+a.blog-title:link, a.blog-title.visited {
+    text-decoration: none;
+    -webkit-transition: color .4s;
+    -moz-transition: color .4s;
+    -o-transition: color .4s;
+    transition: color .4s;
+}
+
+a:hover {
+    color: gray;
+}
+
+.header-mystyle {
+    background-color: #24292e;
+    /*background-size: cover;*/
+    /*width: 100%;*/
+    /*height: 600px;*/
+    margin-bottom: 50px;
+}
+
+.header-title {
+    padding: 80px 0 50px 0;
+    display: block;
+    text-align: center;
+}
+
+.header-content {
+    color: white;
+}
+
+.btn-tag {
+    display: inline-block;
+    border-radius: 5px;
+    color: white !important;
+    padding: 2px 5px;
+    background-color: #666666;
+    -webkit-transition: background-color .4s;
+    -moz-transition: background-color .4s;
+    -o-transition: background-color .4s;
+    transition: background-color .4s;
+}
+
+.btn-tag:hover {
+    text-decoration: none;
+    background-color: darkgray;
+}
+
+.headphoto {
+    width: 80%;
+    margin: 10%;
+}
+
+.comment-manage:first-child {
+    border-top: 1px solid #e0e0e0;
+}
+
+.comment-manage {
+    padding: 10px 0;
+    border-bottom: 1px solid #e0e0e0;
+}
+
+.comment-body-blcok {
+    color: #c0c0c0;
+    font-style: italic;
+}
+
+.pagebar {
+    width: 100%;
+}
+
+.page {
+    /*margin: 10px;*/
+    /*border: 1px solid gray;*/
+    border-radius: 10px;
+    display: inline-block;
+    padding: 5px 20px;
+    -webkit-transition: background-color .4s;
+    -moz-transition: background-color .4s;
+    -o-transition: background-color .4s;
+    transition: background-color .4s;
+}
+
+.page:hover {
+    padding: 5px 20px;
+    background-color: #666666;
+    color: white;
+    text-decoration: none;
+}

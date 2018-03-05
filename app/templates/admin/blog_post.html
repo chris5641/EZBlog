@@ -1,0 +1,25 @@
+{% extends "admin_base.html" %}
+
+{% block headcontainer %}
+    <div>
+        <form method="post" action="{{ url_for('admin.blog_post') }}">
+            <div class="form-group">
+                <label for="title">Title</label>
+                <input class="form-control" type="text" name="title" placeholder="标题" required>
+            </div>
+            <div class="form-group">
+                <label for="tags">Tags</label>
+                <input class="form-control" name="tags" type="text" data-role="tagsinput" placeholder="">
+            </div>
+            <div class="form-group">
+                <label for="summary">Summary</label>
+                <textarea class="form-control" name="summary" rows="4" placeholder="摘要" required></textarea>
+            </div>
+            <div class="form-group">
+                <label for="content">Content</label>
+                <textarea class="form-control" name="content" rows="8" placeholder="正文" required></textarea>
+            </div>
+            <button class="btn btn-primary" type="submit">发表</button>
+        </form>
+    </div>
+{% endblock %}

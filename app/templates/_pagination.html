@@ -1,0 +1,15 @@
+{% macro pagination_widget(pagination, endpoint) %}
+
+    {% if pagination.has_prev %}
+        <a href="{{ url_for(endpoint, page=pagination.page - 1) }}" class="page">< Previous</a>
+    {% endif %}
+
+    {% if pagination.has_next %}
+        <a href="{{ url_for(endpoint, page=pagination.page + 1) }}" class="page" style="float: right">Next ></a>
+    {% endif %}
+
+
+
+
+
+{% endmacro %}

@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% block css %}
+    <link href="/static/css/myadmin.css" rel="stylesheet">
+    <link href="//cdn.bootcss.com/bootstrap-tagsinput/0.8.0/bootstrap-tagsinput.css" rel="stylesheet">
+{% endblock %}
+{% block script %}
+    <script src="//cdn.bootcss.com/bootstrap-tagsinput/0.8.0/bootstrap-tagsinput.min.js"></script>
+{% endblock %}
+{% block headtitle %}{% endblock %}
+{% block sidebar %}
+
+    <ul class="nav navbar-nav side-nav">
+        {% set sidebar = [
+                    ('admin.index', 'Index'),
+                    ('admin.blog_post_view', '发表博客'),
+                    ('admin.blogs_manage', '博客管理'),
+                    ('admin.comments_manage', '评论管理')
+                ] %}
+        {% for url, id in sidebar %}
+            <li {% if request.endpoint == url %}class="active"{% endif %}><a href="{{ url_for(url) }}"><i
+                    class="fa fa-bar-chart-o"></i> {{ id }}</a></li>
+        {% endfor %}
+
+        <li class="dropdown">
+            <a href="#" class="dropdown-toggle" data-toggle="dropdown"><i class="fa fa-caret-square-o-down"></i>
+                Dropdown <b class="caret"></b></a>
+            <ul class="dropdown-menu">
+                <li><a href="#">Dropdown Item</a></li>
+                <li><a href="#">Another Item</a></li>
+                <li><a href="#">Third Item</a></li>
+                <li><a href="#">Last Item</a></li>
+            </ul>
+        </li>
+    </ul>
+
+{% endblock %}
