@@ -2,17 +2,35 @@
 {% import "_pagination.html" as macros %}
 
 {% block container %}
-<div class="container">
-    <div class="row">
-        <div class="col-md-8 col-md-offset-2">
-            <div class="blog-tag">
-                {% for t in tags %}
-                {% if t.blogs %}
-                <a href="{{ url_for('main.tag_view', tag_id=t.id) }}" class="btn-tag">{{ t.name }}</a>
-                {% endif %}
-                {% endfor %}
+    <div class="container">
+        <div class="row">
+            <div class="col-md-8 col-md-offset-2">
+                <h3># Tags</h3>
+                <div class="blog-tag" style="margin: 10px">
+                    {% for t in tags %}
+                        {% if t.blogs %}
+                            <a href="{{ url_for('main.tag_view', tag_id=t.id) }}" class="btn-tag">{{ t.name }}</a>
+                        {% endif %}
+                    {% endfor %}
+                </div>
+                <div style="margin: 25px 0">
+                    {% for b in blogs %}
+                        <div class="row">
+                        <div class="col-md-3">
+                        <p>{{ moment(b.createtime).format('YYYY年MM月DD日 ') }}</p>
+                        </div>
+                        <div class="col-md-9">
+                        <a href="{{ url_for('main.blog_view', blog_id=b.id) }}">{{ b.title }}</a>
+                        </div>
+
+                        </div>
+                    {% endfor %}
+                </div>
+
+                <div class="pagebar">
+                    {{ macros.pagination_widget(pagination, 'main.archives_view') }}
+                </div>
             </div>
         </div>
     </div>
-</div>
 {% endblock %}

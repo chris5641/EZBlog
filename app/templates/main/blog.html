@@ -25,23 +25,22 @@
                     <form method="post" action="{{ url_for('main.comment_post', blog_id=blog.id) }}">
                         <div class="row">
                             <div class="col-md-4">
-                                <input class="form-control" name="name" type="text" placeholder="昵称"
+                                <input class="form-control comment-input" name="name" type="text" placeholder="昵称"
                                        value="{% if current_user.is_authenticated %}{{ current_user.username }}{% endif %}"
                                        required>
                             </div>
                             <div class="col-md-4">
-                                <input class="form-control" name="email" type="email" placeholder="邮箱"
+                                <input class="form-control comment-input" name="email" type="email" placeholder="邮箱"
                                        value="{% if current_user.is_authenticated %}{{ current_user.email }}{% endif %}"
                                        required>
                             </div>
                             <div class="col-md-4">
-                                <input class="form-control" name="website" type="url" placeholder="网址"
+                                <input class="form-control comment-input" name="website" type="url" placeholder="网址"
                                        value="{% if current_user.is_authenticated %}{{ current_user.website }}{% endif %}">
                             </div>
                             <div class="col-md-12">
-                            <textarea class="form-control" name="content" rows="4" placeholder="评论" required
-                                      style="resize: none; margin: 10px 0"></textarea>
-                                <button class="btn btn-primary" type="submit" style="float:right;">发表</button>
+                            <textarea class="form-control" name="content" rows="4" placeholder="评论" required></textarea>
+                                <button class="btn btn-primary" type="submit" style="margin:10px; float:right;">发表</button>
                             </div>
                         </div>
                     </form>
@@ -50,7 +49,7 @@
                 <div class="media-list" style="margin-top: 10px">
                     {% for c in blog.comments %}
                         {% if current_user.is_authenticated or not c.is_block %}
-                            <li class="media" id="{{ c.id }}">
+                            <li class="media">
                                 <div class="media-left">
                                     <img src="https://cdn.v2ex.com/gravatar/{{ c.gravatar_id }}" class="img-circle"
                                          height="50" width="50">
@@ -70,7 +69,7 @@
                                     </h4>
                                     <span style="color: gray;font-size: 0.9em">{{ moment(c.createtime).fromNow(refresh=True) }}</span>
                                     <div style="float: right">
-                                        <a id="{{ c.id }}" href="" class="reply" onclick="return false">回复</a>
+                                        <a id="{{ c.id }}" href="" class="reply" name="{{ c.name }}" onclick="return false">回复</a>
                                         {% if current_user.is_authenticated %}
                                             <span>|</span>
                                             <a href="{{ url_for('admin.comment_block', comment_id=c.id) }}">
@@ -84,7 +83,7 @@
                                     {% else %}
                                         <p class="comment-body">{{ c.content }}</p>
                                     {% endif %}
-                                    <div class="media-list" style="border-left: 0.5em solid #f0f0f0; padding-left: 1em">
+                                    <div class="media-list" style="border-left: 0.5em solid #f0f0f0; padding-left: 1em; margin-top: 2em">
                                         {% for r in c.replys %}
                                             <div class="media">
                                                 <div class="media-left">
@@ -108,7 +107,7 @@
                                                     <span style="color: gray;font-size: 0.9em">{{ moment(r.createtime).fromNow(refresh=True) }}</span>
 
                                                     <div style="float: right">
-                                                        <a id="{{ c.id }}" href="" class="reply" onclick="return false">回复</a>
+                                                        <a id="{{ c.id }}" href="" class="reply" name="{{ r.name }}" onclick="return false">回复</a>
                                                         {% if current_user.is_authenticated %}
                                                             <span>|</span>
                                                             <a href="{{ url_for('admin.reply_block', reply_id=r.id) }}">
@@ -147,6 +146,7 @@
             $('.reply').click(function () {
                 var replyUrl = '/reply/post/' + $(this).attr('id');
                 form.find('form').attr('action', replyUrl);
+                form.find('textarea').val('@'+$(this).attr('name')+' ');
                 $('.cancel-reply').show();
                 $(this).parent().parent().after(form);
             });

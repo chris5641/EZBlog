@@ -13,8 +13,7 @@
             <div class="col-md-8 col-md-offset-2">
                 {% for b in blogs %}
                     <div class="blog">
-                        <h1 class="blog-title"><a href="{{ url_for('main.blog_view', blog_id=b.id) }}"
-                                                  class="title">{{ b.title }}</a></h1>
+                        <h1 class="blog-title"><a href="{{ url_for('main.blog_view', blog_id=b.id) }}">{{ b.title }}</a></h1>
                         <div class="blog-detail" style="text-align: center">
                             <span>{{ moment(b.createtime).format('YYYY.MM.DD') }} •</span>
                             <span><a href="{{ url_for('main.blog_view', blog_id=b.id) }}#comments" style="color: gray">{{ b.comments_count }}</a> 条评论 •</span>

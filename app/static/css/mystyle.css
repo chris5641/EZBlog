@@ -101,6 +101,11 @@ a.blog-title:link, a.blog-title.visited {
     background-color: darkgray;
 }
 
+.comment-input {
+    resize: none;
+    margin: 10px 0;
+}
+
 
 .comment-manage:first-child {
     border-top: 1px solid #e0e0e0;
