@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% import "_pagination.html" as macros %}
+
+{% block container %}
+<div class="container">
+    <div class="row">
+        <div class="col-md-8 col-md-offset-2">
+            <div class="blog-tag">
+                {% for t in tags %}
+                {% if t.blogs %}
+                <a href="{{ url_for('main.tag_view', tag_id=t.id) }}" class="btn-tag">{{ t.name }}</a>
+                {% endif %}
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -81,7 +81,7 @@ class Blog(db.Model, ModelMixin):
     content_html = db.Column(db.Text)
     view_count = db.Column(db.Integer, default=0)
     comments_count = db.Column(db.Integer, default=0)
-    createtime = db.Column(db.DateTime, index=True, default=datetime.utcnow())
+    createtime = db.Column(db.DateTime, index=True, default=datetime.utcnow)
     comments = db.relationship('Comment', backref='blog', lazy='dynamic')
     tags = db.relationship('Tag', secondary=association_table,
                            backref=db.backref('blogs', lazy='dynamic'),
@@ -160,6 +160,7 @@ class Blog(db.Model, ModelMixin):
             )
             tags = sample(tag_list, randint(0, 4))
             b = Blog(d)
+            b.createtime = forgery_py.date.datetime(True, 0, 1000)
             b.save(tags)
 
 
@@ -195,8 +196,9 @@ class Comment(db.Model, ModelMixin):
     content = db.Column(db.Text)
     gravatar_id = db.Column(db.String(64))
     is_block = db.Column(db.Boolean, default=False)
-    createtime = db.Column(db.DateTime, index=True, default=datetime.utcnow())
+    createtime = db.Column(db.DateTime, index=True, default=datetime.utcnow)
     blog_id = db.Column(db.Integer, db.ForeignKey('blogs.id'))
+    replys = db.relationship('Reply', backref='comment', lazy='dynamic')
 
     def __init__(self, form):
         self.name = form.get('name', '')
@@ -213,24 +215,16 @@ class Comment(db.Model, ModelMixin):
         db.session.commit()
 
     def delete(self, blog):
-        blog.comments_count -= 1
+        if not self.is_block:
+            blog.comments_count -= 1
+            db.session.add(blog)
         db.session.delete(self)
-        db.session.add(blog)
         db.session.commit()
 
     def block(self):
-        if not self.is_block:
-            self.is_block = True
-            self.blog.comments_count -= 1
-            db.session.add(self)
-            db.session.commit()
-
-    def unblock(self):
-        if self.is_block:
-            self.is_block = False
-            self.blog.comments_count += 1
-            db.session.add(self)
-            db.session.commit()
+        self.is_block = not self.is_block
+        db.session.add(self)
+        db.session.commit()
 
     @staticmethod
     def generate_fake(count=500):
@@ -250,6 +244,65 @@ class Comment(db.Model, ModelMixin):
                 c = Comment(d)
                 blogs = Blog.query.all()
                 c.save(blogs[randint(0, blog_count-1)])
+
+
+class Reply(db.Model, ModelMixin):
+    __tablename__ = 'replys'
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(64))
+    email = db.Column(db.String(64))
+    website = db.Column(db.String(256))
+    content = db.Column(db.Text)
+    gravatar_id = db.Column(db.String(64))
+    is_block = db.Column(db.Boolean, default=False)
+    createtime = db.Column(db.DateTime, index=True, default=datetime.utcnow)
+    blog_id = db.Column(db.Integer, db.ForeignKey('blogs.id'))
+    comment_id = db.Column(db.Integer, db.ForeignKey('comments.id'))
+
+    def __init__(self, form):
+        self.name = form.get('name', '')
+        self.email = form.get('email', '')
+        self.website = form.get('website', '')
+        self.content = form.get('content', '')
+
+    def save(self, comment):
+        self.comment_id = comment.id
+        self.gravatar_id = hashlib.md5(self.email.lower().encode('utf-8')).hexdigest()
+        comment.blog.comments_count += 1
+        db.session.add(comment.blog)
+        db.session.add(self)
+        db.session.commit()
+
+    def delete(self, comment):
+        if not self.is_block:
+            comment.blog.comments_count -= 1
+            db.session.add(comment.blog)
+        db.session.delete(self)
+        db.session.commit()
+
+    def block(self):
+        self.is_block = not self.is_block
+        db.session.add(self)
+        db.session.commit()
+
+    @staticmethod
+    def generate_fake(count=500):
+        import forgery_py
+        from random import seed, randint
+
+        seed()
+        comment_count = Comment.query.count()
+        if comment_count > 0:
+            for i in range(count):
+                d = dict(
+                    name=forgery_py.name.full_name(),
+                    email=forgery_py.email.address(),
+                    website='http://' + forgery_py.internet.domain_name(),
+                    content=forgery_py.lorem_ipsum.paragraph()
+                )
+                r = Reply(d)
+                comments = Comment.query.all()
+                r.save(comments[randint(0, comment_count - 1)])
 
 
 

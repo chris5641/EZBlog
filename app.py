@@ -4,7 +4,7 @@ from flask_migrate import Migrate, MigrateCommand
 from flask_moment import Moment
 
 from app import create_app, db
-from app.models import User, Blog, Comment, Tag
+from app.models import User, Blog, Comment, Tag, Reply
 
 app = create_app()
 manager = Manager(app)
@@ -13,7 +13,7 @@ moment = Moment(app)
 
 
 def make_shell_context():
-    return dict(app=app, db=db, User=User, Blog=Blog, Comment=Comment, Tag=Tag)
+    return dict(app=app, db=db, User=User, Blog=Blog, Comment=Comment, Tag=Tag, Reply=Reply)
 
 
 manager.add_command('shell', Shell(make_context=make_shell_context))
@@ -33,6 +33,8 @@ def build_db():
     u.save()
     Blog.generate_fake()
     Comment.generate_fake()
+    Reply.generate_fake()
+
     print('create database OK')
 
 

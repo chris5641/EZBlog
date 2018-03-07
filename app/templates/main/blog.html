@@ -1,9 +1,10 @@
 {% extends 'base.html' %}
+
 {% block title %}{{ blog.title }}{% endblock %}
 {% block container %}
     <div class="container">
         <div class="row">
-            <div class="col-md-10 col-md-offset-1">
+            <div class="col-md-8 col-md-offset-2">
                 <div class="blog">
                     <div class="page-header" style="padding-top: 1em;">
                         <h1>{{ blog.title }}</h1>
@@ -17,118 +18,147 @@
                     <div class="blog-content">{{ blog.content_html | safe }}</div>
 
                 </div>
-                <div class="main-block">
-                    <h3 id="comments">评论</h3>
-                    <form method="post" action="{{ url_for('admin.comment_post', blog_id=blog.id) }}">
-                        <div class="form-group">
-                            <label for="name">*name</label>
-                            <input class="form-control" name="name" type="text" placeholder="昵称"
-                                   value="{% if current_user.is_authenticated %}{{ current_user.username }}{% endif %}"
-                                   required>
-                        </div>
-                        <div class="form-group">
-                            <label for="email">*email</label>
-                            <input class="form-control" name="email" type="email" placeholder="邮箱"
-                                   value="{% if current_user.is_authenticated %}{{ current_user.email }}{% endif %}"
-                                   required>
-                        </div>
-                        <div class="form-group">
-                            <label for="website">website</label>
-                            <input class="form-control" name="website" type="url" placeholder="网址"
-                                   value="{% if current_user.is_authenticated %}{{ current_user.website }}{% endif %}">
-                        </div>
-                        <div class="form-group">
-                            <label for="content">*content</label>
+                <div id="comment-form">
+                    <h3>评论<span style="float: right"><a class="cancel-reply" href="" onclick="return false"
+                                                        style="font-size: 0.6em; font-weight: 400; display: none">取消回复</a></span>
+                    </h3>
+                    <form method="post" action="{{ url_for('main.comment_post', blog_id=blog.id) }}">
+                        <div class="row">
+                            <div class="col-md-4">
+                                <input class="form-control" name="name" type="text" placeholder="昵称"
+                                       value="{% if current_user.is_authenticated %}{{ current_user.username }}{% endif %}"
+                                       required>
+                            </div>
+                            <div class="col-md-4">
+                                <input class="form-control" name="email" type="email" placeholder="邮箱"
+                                       value="{% if current_user.is_authenticated %}{{ current_user.email }}{% endif %}"
+                                       required>
+                            </div>
+                            <div class="col-md-4">
+                                <input class="form-control" name="website" type="url" placeholder="网址"
+                                       value="{% if current_user.is_authenticated %}{{ current_user.website }}{% endif %}">
+                            </div>
+                            <div class="col-md-12">
                             <textarea class="form-control" name="content" rows="4" placeholder="评论" required
-                                      style="resize: none"></textarea>
+                                      style="resize: none; margin: 10px 0"></textarea>
+                                <button class="btn btn-primary" type="submit" style="float:right;">发表</button>
+                            </div>
                         </div>
-                        <button class="btn btn-primary" type="submit">发表</button>
                     </form>
-                    <hr>
-                    <div class="media-list">
-                        {% for c in blog.comments %}
-                            {% if not c.is_block %}
-                                <li class="media" id="{{ c.id }}">
-                                    <div class="media-left">
-                                        <img src="https://cdn.v2ex.com/gravatar/{{ c.gravatar_id }}" class="img-circle"
-                                             height="50" width="50">
-                                    </div>
-                                    <div class="media-body">
-                                        <h4 class="media-heading">
-                                            {% if c.website %}
-                                                <span><a target="_blank" href="{{ c.website }}" rel="nofollow"
-                                                         class="title">{{ c.name }}</a></span>
-                                            {% else %}
-                                                <span>{{ c.name }}</span>
-                                            {% endif %}
-                                            {% if current_user.is_authenticated %}
-                                                <span><a href="mailto:{{ c.email }}"><i
-                                                        class="fa fa-envelope"></i></a></span>
-                                            {% endif %}
-                                        </h4>
-                                        <h6>{{ moment(c.createtime).format('YYYY-MM-DD  H:mm') }}</h6>
-                                        <p class="{% if c.is_block %}comment-body-blcok{% endif %}">{{ c.content }}</p>
-                                    </div>
-                                    {% if current_user.is_authenticated %}
-                                        <div class="media-right">
-                                            {% if c.is_block %}
-                                                <a class="btn btn-success"
-                                                   href="{{ url_for('admin.comment_unblock', comment_id=c.id) }}">恢复</a>
-                                            {% else %}
-                                                <a class="btn btn-warning"
-                                                   href="{{ url_for('admin.comment_block', comment_id=c.id) }}">隐藏</a>
-                                            {% endif %}
-                                            <p></p>
-                                            <a class="btn btn-danger"
-                                               href="{{ url_for('admin.comment_delete', comment_id=c.id) }}">删除</a>
-                                        </div>
-                                    {% endif %}
-                                </li>
-                            {% elif current_user.is_authenticated %}
-                                <li class="media" id="{{ c.id }}">
-                                    <div class="media-left">
-                                        <img src="https://cdn.v2ex.com/gravatar/{{ c.gravatar_id }}" class="img-circle"
-                                             height="50" width="50">
-                                    </div>
-                                    <div class="media-body">
-                                        <h4 class="media-heading">
-                                            {% if c.website %}
-                                                <span><a target="_blank" href="{{ c.website }}" rel="nofollow"
-                                                         class="title">{{ c.name }}</a></span>
-                                            {% else %}
-                                                <span>{{ c.name }}</span>
-                                            {% endif %}
-                                            {% if current_user.is_authenticated %}
-                                                <span><a href="mailto:{{ c.email }}"><i
-                                                        class="fa fa-envelope"></i></a></span>
-                                            {% endif %}
-                                        </h4>
-                                        <h6>{{ moment(c.createtime).format('YYYY-MM-DD  H:mm') }}</h6>
-                                        <p class="{% if c.is_block %}comment-body-blcok{% endif %}">{{ c.content }}</p>
-                                    </div>
-                                    {% if current_user.is_authenticated %}
-                                        <div class="media-right">
-                                            {% if c.is_block %}
-                                                <a class="btn btn-success"
-                                                   href="{{ url_for('admin.comment_unblock', comment_id=c.id) }}">恢复</a>
-                                            {% else %}
-                                                <a class="btn btn-warning"
-                                                   href="{{ url_for('admin.comment_block', comment_id=c.id) }}">隐藏</a>
-                                            {% endif %}
-                                            <p></p>
-                                            <a class="btn btn-danger"
-                                               href="{{ url_for('admin.comment_delete', comment_id=c.id) }}">删除</a>
-                                        </div>
-                                    {% endif %}
-                                </li>
-                            {% endif %}
-                            <hr style="width: 30%">
-
-                        {% endfor %}
-                    </div>
-
                 </div>
+                <h3 style="padding: 10px 0">已有{{ blog.comments_count }}条评论</h3>
+                <div class="media-list" style="margin-top: 10px">
+                    {% for c in blog.comments %}
+                        {% if current_user.is_authenticated or not c.is_block %}
+                            <li class="media" id="{{ c.id }}">
+                                <div class="media-left">
+                                    <img src="https://cdn.v2ex.com/gravatar/{{ c.gravatar_id }}" class="img-circle"
+                                         height="50" width="50">
+                                </div>
+                                <div class="media-body">
+                                    <h4 class="media-heading">
+                                        {% if c.website %}
+                                            <span><a target="_blank" href="{{ c.website }}" rel="nofollow"
+                                                     class="title">{{ c.name }}</a></span>
+                                        {% else %}
+                                            <span>{{ c.name }}</span>
+                                        {% endif %}
+                                        {% if current_user.is_authenticated %}
+                                            <span><a href="mailto:{{ c.email }}"><i
+                                                    class="fa fa-envelope"></i></a></span>
+                                        {% endif %}
+                                    </h4>
+                                    <span style="color: gray;font-size: 0.9em">{{ moment(c.createtime).fromNow(refresh=True) }}</span>
+                                    <div style="float: right">
+                                        <a id="{{ c.id }}" href="" class="reply" onclick="return false">回复</a>
+                                        {% if current_user.is_authenticated %}
+                                            <span>|</span>
+                                            <a href="{{ url_for('admin.comment_block', comment_id=c.id) }}">
+                                                {% if c.is_block %}恢复{% else %}隐藏{% endif %}</a>
+                                            <span>|</span>
+                                            <a href="{{ url_for('admin.comment_delete', comment_id=c.id) }}">删除</a>
+                                        {% endif %}
+                                    </div>
+                                    {% if c.is_block %}
+                                        <p class="comment-body comment-body-blcok">这条发言已被屏蔽</p>
+                                    {% else %}
+                                        <p class="comment-body">{{ c.content }}</p>
+                                    {% endif %}
+                                    <div class="media-list" style="border-left: 0.5em solid #f0f0f0; padding-left: 1em">
+                                        {% for r in c.replys %}
+                                            <div class="media">
+                                                <div class="media-left">
+                                                    <img src="https://cdn.v2ex.com/gravatar/{{ r.gravatar_id }}"
+                                                         class="img-circle"
+                                                         height="50" width="50">
+                                                </div>
+                                                <div class="media-body">
+                                                    <h4 class="media-heading">
+                                                        {% if c.website %}
+                                                            <span><a target="_blank" href="{{ r.website }}" rel="nofollow"
+                                                                     class="title">{{ r.name }}</a></span>
+                                                        {% else %}
+                                                            <span>{{ r.name }}</span>
+                                                        {% endif %}
+                                                        {% if current_user.is_authenticated %}
+                                                            <span><a href="mailto:{{ r.email }}"><i
+                                                                    class="fa fa-envelope"></i></a></span>
+                                                        {% endif %}
+                                                    </h4>
+                                                    <span style="color: gray;font-size: 0.9em">{{ moment(r.createtime).fromNow(refresh=True) }}</span>
+
+                                                    <div style="float: right">
+                                                        <a id="{{ c.id }}" href="" class="reply" onclick="return false">回复</a>
+                                                        {% if current_user.is_authenticated %}
+                                                            <span>|</span>
+                                                            <a href="{{ url_for('admin.reply_block', reply_id=r.id) }}">
+                                                                {% if r.is_block %}恢复{% else %}隐藏{% endif %}</a>
+                                                            <span>|</span>
+                                                            <a href="{{ url_for('admin.reply_delete', reply_id=r.id) }}">删除</a>
+                                                        {% endif %}
+                                                    </div>
+                                                    {% if r.is_block %}
+                                                        <p class="comment-body comment-body-blcok">这条发言已被屏蔽</p>
+                                                    {% else %}
+                                                        <p class="comment-body">{{ r.content }}</p>
+                                                    {% endif %}
+
+                                                </div>
+                                            </div>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+
+                            </li>
+                        {% endif %}
+
+                    {% endfor %}
+                </div>
+
             </div>
         </div>
     </div>
+{% endblock %}
+
+{% block script %}
+    <script>
+        var form = $('#comment-form');
+        $(document).ready(function () {
+            $('.reply').click(function () {
+                var replyUrl = '/reply/post/' + $(this).attr('id');
+                form.find('form').attr('action', replyUrl);
+                $('.cancel-reply').show();
+                $(this).parent().parent().after(form);
+            });
+
+            $('.cancel-reply').click(function () {
+                $(this).hide();
+                var commentUrl = '/comment/post/' + {{ blog.id }};
+                form.find('form').attr('action', commentUrl);
+                $('.blog').after(form);
+            });
+
+            $("table").addClass('table table-bordered table-striped')
+        });
+    </script>
 {% endblock %}

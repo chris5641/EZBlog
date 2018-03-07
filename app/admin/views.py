@@ -6,7 +6,7 @@ from flask import (
 )
 from flask_login import login_required
 
-from ..models import Blog, Tag, Comment
+from ..models import Blog, Tag, Comment, Reply
 from . import admin
 
 
@@ -70,22 +70,15 @@ def comments_manage():
     return render_template('admin/comments_manage.html', comments=comments, pagination=pagination)
 
 
-@admin.route('/comment/post/<blog_id>', methods=['POST'])
-def comment_post(blog_id):
-    comment = Comment(request.form)
-    blog = Blog.query.get_or_404(blog_id)
-    comment.save(blog)
-    logging.info('add comment: {}'.format(comment))
-    return redirect(url_for('main.blog_view', blog_id=blog_id))
-
-
 @admin.route('/comment/delete/<comment_id>')
 @login_required
 def comment_delete(comment_id):
     comment = Comment.query.get_or_404(comment_id)
     blog_id = comment.blog_id
     blog = Blog.query.get_or_404(blog_id)
-    logging.info('del comment: {}'.format(comment))
+    logging.info('delete comment: {}'.format(comment))
+    for r in comment.replys:
+        r.delete(comment)
     comment.delete(blog)
     return redirect(request.referrer)
 
@@ -94,13 +87,29 @@ def comment_delete(comment_id):
 @login_required
 def comment_block(comment_id):
     comment = Comment.query.get_or_404(comment_id)
+    logging.info('block comment: {}'.format(comment))
+    for r in comment.replys:
+        r.block()
     comment.block()
     return redirect(request.referrer)
 
 
-@admin.route('/comment/unblock/<comment_id>')
+@admin.route('/reply/delete/<reply_id>')
 @login_required
-def comment_unblock(comment_id):
+def reply_delete(reply_id):
+    reply = Reply.query.get_or_404(reply_id)
+    comment_id = reply.comment_id
     comment = Comment.query.get_or_404(comment_id)
-    comment.unblock()
+    logging.info('delete reply: {}'.format(reply))
+    reply.delete(comment)
     return redirect(request.referrer)
+
+
+@admin.route('/reply/block/<reply_id>')
+@login_required
+def reply_block(reply_id):
+    reply = Reply.query.get_or_404(reply_id)
+    logging.info('block reply: {}'.format(reply))
+    reply.block()
+    return redirect(request.referrer)
+

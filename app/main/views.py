@@ -5,8 +5,9 @@ from flask import (
     render_template, request, url_for, redirect, abort, current_app
 )
 from flask_login import login_user, logout_user, login_required
+from sqlalchemy import extract
 
-from ..models import Blog, User, Tag, Comment
+from ..models import Blog, User, Tag, Comment, Reply
 from . import main
 
 
@@ -30,7 +31,7 @@ def login_view():
 @login_required
 def logout():
     logout_user()
-    return redirect(url_for('main.index'))
+    return redirect(request.referrer)
 
 
 @main.route('/login', methods=['POST'])
@@ -51,6 +52,15 @@ def blog_view(blog_id):
     return render_template('main/blog.html', blog=blog)
 
 
+@main.route('/archives/')
+def archives_view():
+    tags = Tag.query.order_by(Tag.id).all()
+    page = request.args.get('page', 1, type=int)
+    pagination = Blog.query.order_by(Blog.createtime.desc()).paginate(page, per_page=20, error_out=False)
+    blogs = pagination.items
+    return render_template('main/archives.html', blogs=blogs, tags=tags, pagination=pagination)
+
+
 @main.route('/tags/<tag_id>')
 def tag_view(tag_id):
     tag = Tag.query.get_or_404(tag_id)
@@ -65,6 +75,24 @@ def tag_view(tag_id):
 @main.route('/about/')
 def about_view():
     return render_template('main/about.html')
+
+
+@main.route('/comment/post/<blog_id>', methods=['POST'])
+def comment_post(blog_id):
+    comment = Comment(request.form)
+    blog = Blog.query.get_or_404(blog_id)
+    comment.save(blog)
+    logging.info('add comment: {}'.format(comment))
+    return redirect(url_for('main.blog_view', blog_id=blog_id))
+
+
+@main.route('/reply/post/<comment_id>', methods=['POST'])
+def reply_post(comment_id):
+    comment = Comment.query.get_or_404(comment_id)
+    reply = Reply(request.form)
+    reply.save(comment)
+    logging.info('add reply: {}'.format(reply))
+    return redirect(url_for('main.blog_view', blog_id=comment.blog_id))
 
 
 
