@@ -2,9 +2,7 @@
 {% import "_pagination.html" as macros %}
 
 {% block headcontainer %}
-     <div class="page-header">
-        <h1>博客管理</h1>
-    </div>
+    <h1>博客管理</h1>
     <div>
         <table class="table table-hover">
             <thead>
@@ -20,12 +18,14 @@
                     <th>{{ b.title }}</th>
                     <th>{{ moment(b.createtime).format('YYYY-MM-DD') }}</th>
                     <th>
-                        <button class="btn btn-success" data-toggle="modal" data-target="#editBlog"><i
-                                class="fa fa-edit"></i> 编辑
-                        </button>
+                        <a class="btn btn-success" data-toggle="modal" data-target="#editBlog-{{ b.id }}"><i
+                                class="fa fa-edit"></i> 编辑</a>
+
+                        <a href="{{ url_for('admin.blog_delete', blog_id=b.id) }}" class="btn btn-danger"
+                           style="color: white"><i class="fa fa-trash"></i> 删除</a>
 
                         <!-- 模态框  -->
-                        <div class="modal fade" id="editBlog" tabindex="-1" role="dialog" aria-labelledby="editBlog"
+                        <div class="modal fade" id="editBlog-{{ b.id }}" tabindex="-1" role="dialog" aria-labelledby="editBlog"
                              aria-hidden="true"
                              data-backdrop="false">
                             <div class="modal-dialog modal-lg">
@@ -52,7 +52,7 @@
                                             <div class="form-group">
                                                 <label for="summary">Summary</label>
                                                 <textarea class="form-control" name="summary" rows="3" placeholder="摘要"
-                                                           required>{{ b.summary }}</textarea>
+                                                           >{{ b.summary }}</textarea>
                                             </div>
                                             <div class="form-group">
                                                 <label for="content">Content</label>
@@ -70,8 +70,6 @@
                             </div>
                         </div>
 
-                        <a href="{{ url_for('admin.blog_delete', blog_id=b.id) }}" class="btn btn-danger"><i
-                                class="fa fa-trash"></i> 删除</a>
                     </th>
                 </tr>
             {% endfor %}

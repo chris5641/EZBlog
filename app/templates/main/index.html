@@ -3,20 +3,20 @@
 
 {% block container %}
 
-    <div class="jumbotron header-title header-mystyle">
-        <h1 class="header-content" style="font-size: 4em; color: white">Chris's Blog</h1>
-        <p class="header-content" style="font-size: 1.5em">There's too much goddamn beauty.</p>
-    </div>
+{#    <div class="jumbotron header-title header-mystyle">#}
+{#        <h1 class="header-content" style="font-size: 4em; color: white">Chris's Blog</h1>#}
+{#        <p class="header-content" style="font-size: 1.5em">There's too much goddamn beauty.</p>#}
+{#    </div>#}
 
     <div class="container">
         <div class="row">
-            <div class="col-md-8 col-md-offset-2">
+            <div class="col-xs-12 col-md-8 col-md-offset-2">
                 {% for b in blogs %}
                     <div class="blog">
                         <h1 class="blog-title"><a href="{{ url_for('main.blog_view', blog_id=b.id) }}">{{ b.title }}</a></h1>
                         <div class="blog-detail" style="text-align: center">
                             <span>{{ moment(b.createtime).format('YYYY.MM.DD') }} •</span>
-                            <span><a href="{{ url_for('main.blog_view', blog_id=b.id) }}#comments" style="color: gray">{{ b.comments_count }}</a> 条评论 •</span>
+                            <span><a href="{{ url_for('main.blog_view', blog_id=b.id) }}#comments" style="color: gray">{{ b.comments.count() }}</a> 条评论 •</span>
                             <span>浏览 {{ b.view_count }} 次</span>
                         </div>
                         <div class="blog-content">{{ b.summary_html | safe }}</div>

@@ -1,36 +1,120 @@
-{% extends "base.html" %}
-{% block css %}
-    <link href="/static/css/myadmin.css" rel="stylesheet">
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <link href="//cdn.bootcss.com/bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet">
+    <link href="//cdn.bootcss.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet">
     <link href="//cdn.bootcss.com/bootstrap-tagsinput/0.8.0/bootstrap-tagsinput.css" rel="stylesheet">
-{% endblock %}
-{% block script %}
-    <script src="//cdn.bootcss.com/bootstrap-tagsinput/0.8.0/bootstrap-tagsinput.min.js"></script>
-{% endblock %}
-{% block headtitle %}{% endblock %}
-{% block sidebar %}
+    <link href="/static/css/pygments.css" rel="stylesheet">
+    <link href="/static/css/mystyle.css" rel="stylesheet">
+    <link href="/static/css/myadmin.css" rel="stylesheet">
+    {% block css %}{% endblock %}
 
-    <ul class="nav navbar-nav side-nav">
-        {% set sidebar = [
+    <title>{% block title %}EZBlog{% endblock %}</title>
+</head>
+<body>
+<div id="wrapper">
+        <nav class="navbar navbar-default navbar-fixed-top navbar-mystyle navbar-inverse">
+            <div class="container-fluid">
+                <div class="navbar-header">
+                    <button type="button" class="navbar-toggle" data-toggle="collapse"
+                            data-target=".navbar-ex1-collapse">
+                        <span class="sr-only">Toggle navigation</span>
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                    </button>
+                    <a class="navbar-brand" href="/">首页</a>
+                </div>
+
+
+                <ul class="nav navbar-nav side-nav">
+                    {% set sidebar = [
                     ('admin.index', 'Index'),
                     ('admin.blog_post_view', '发表博客'),
                     ('admin.blogs_manage', '博客管理'),
-                    ('admin.comments_manage', '评论管理')
-                ] %}
-        {% for url, id in sidebar %}
-            <li {% if request.endpoint == url %}class="active"{% endif %}><a href="{{ url_for(url) }}"><i
-                    class="fa fa-bar-chart-o"></i> {{ id }}</a></li>
-        {% endfor %}
+                    ('admin.comments_manage', '评论管理'),
+                    ('admin.account_manage', '账号管理'),
+                         ] %}
+                    {% for url, id in sidebar %}
+                        <li {% if request.endpoint == url %}class="active"{% endif %}><a href="{{ url_for(url) }}"><i
+                                class="fa fa-bar-chart-o"></i> {{ id }}</a></li>
+                    {% endfor %}
 
-        <li class="dropdown">
-            <a href="#" class="dropdown-toggle" data-toggle="dropdown"><i class="fa fa-caret-square-o-down"></i>
-                Dropdown <b class="caret"></b></a>
-            <ul class="dropdown-menu">
-                <li><a href="#">Dropdown Item</a></li>
-                <li><a href="#">Another Item</a></li>
-                <li><a href="#">Third Item</a></li>
-                <li><a href="#">Last Item</a></li>
-            </ul>
-        </li>
-    </ul>
+                    <li class="dropdown">
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown"><i
+                                class="fa fa-caret-square-o-down"></i>
+                            Dropdown <b class="caret"></b></a>
+                        <ul class="dropdown-menu">
+                            <li><a href="#">Dropdown Item</a></li>
+                            <li><a href="#">Another Item</a></li>
+                            <li><a href="#">Third Item</a></li>
+                            <li><a href="#">Last Item</a></li>
+                        </ul>
+                    </li>
+                </ul>
+
+                <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+                    <ul class="nav navbar-nav">
+                        <li><a href="{{ url_for('main.archives_view') }}">归档</a></li>
+                        <li><a href="#">项目</a></li>
+                        <li><a href="#">关于</a></li>
+                    </ul>
+
+                    <ul class="nav navbar-nav navbar-right">
+
+                        {% if current_user.is_authenticated %}
+                            <li class="dropdown">
+                                <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button"
+                                   aria-haspopup="true"
+                                   aria-expanded="false">{{ current_user.username }}<span class="caret"></span></a>
+                                <ul class="dropdown-menu">
+                                    <li><a href="{{ url_for('admin.index') }}">管理</a></li>
+                                    <li><a href="#">Another action</a></li>
+                                    <li><a href="#">Something else here</a></li>
+                                    <li role="separator" class="divider"></li>
+                                    <li><a href="/logout">logout</a></li>
+                                </ul>
+                            </li>
+                        {% else %}
+                            <li><a href="/login">login</a></li>
+                        {% endif %}
+                    </ul>
+
+                    <form class="navbar-form navbar-right">
+                        <div class="form-group">
+                            <input type="text" class="form-control" placeholder="Search">
+                        </div>
+                        <button type="submit" class="btn btn-default">Submit</button>
+                    </form>
+
+                </div>
+            </div>
+
+        </nav>
+
+        <div id="page-wrapper">
+            <div class="row">
+                <div class="col-lg-12">
+                    {% block headcontainer %}
+                    {% endblock %}
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+{% block container %}
 
 {% endblock %}
+
+<script src="//cdn.bootcss.com/jquery/3.3.1/jquery.min.js"></script>
+<script src="//cdn.bootcss.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+<script src="//cdn.bootcss.com/bootstrap-tagsinput/0.8.0/bootstrap-tagsinput.min.js"></script>
+{{ moment.include_moment('2.20.1', '//cdn.bootcss.com/moment.js/2.20.1/moment-with-locales.min.js') }}
+{{ moment.lang("zh-CN") }}
+{% block script %}{% endblock %}
+</body>
+
+</html>
+

@@ -1,15 +1,10 @@
 {% macro pagination_widget(pagination, endpoint) %}
-
+<ul class="pager">
     {% if pagination.has_prev %}
-        <a href="{{ url_for(endpoint, page=pagination.page - 1) }}" class="page">< 上一页</a>
+        <li class="previous"><a href="{{ url_for(endpoint, page=pagination.page - 1) }}" >&lt;&nbsp;上一页</a></li>
     {% endif %}
-
     {% if pagination.has_next %}
-        <a href="{{ url_for(endpoint, page=pagination.page + 1) }}" class="page" style="float: right">下一页 ></a>
+        <li class="next"><a href="{{ url_for(endpoint, page=pagination.page + 1) }}">下一页&nbsp;&gt;</a></li>
     {% endif %}
-
-
-
-
-
+</ul>
 {% endmacro %}

@@ -2,9 +2,7 @@
 {% import "_pagination.html" as macros %}
 
 {% block headcontainer %}
-    <div class="page-header">
-        <h1>评论管理</h1>
-    </div>
+    <h1>评论管理</h1>
     <div>
         {% for c in comments %}
             <div class="comment-manage">
@@ -13,14 +11,9 @@
                 <p class="{% if c.is_block %}comment-body-blcok{% endif %}" style="margin-left: 10px">{{ c.content }}</p>
                 <span><i class="fa fa-calendar"></i> {{ moment(c.createtime).format("YYYY-MM-DD HH:mm") }}</span>
                 <a href="{{ url_for('admin.comment_delete', comment_id=c.id) }}"
-                   class="btn btn-xs btn-danger pull-right" style="margin: 0 5px;">删除</a>
-                {% if c.is_block %}
-                    <a href="{{ url_for('admin.comment_unblock', comment_id=c.id) }}"
-                       class="btn btn-xs btn-success pull-right">恢复</a>
-                {% else %}
+                   class="pull-right" style="margin: 0 5px;">删除</a>
                     <a href="{{ url_for('admin.comment_block', comment_id=c.id) }}"
-                       class="btn btn-xs btn-warning pull-right">隐藏</a>
-                {% endif %}
+                       class="pull-right">{% if c.is_block %}恢复 |{% else %}隐藏 |{% endif %}</a>
             </div>
         {% endfor %}
     </div>

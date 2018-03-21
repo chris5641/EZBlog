@@ -2,17 +2,20 @@
 
 {% block title %}{{ blog.title }}{% endblock %}
 {% block container %}
+    {% set comments_count = blog.comments.count() %}
     <div class="container">
         <div class="row">
             <div class="col-md-8 col-md-offset-2">
                 <div class="blog">
-                    <div class="page-header" style="padding-top: 1em;">
-                        <h1>{{ blog.title }}</h1>
+                    <div class="page-header">
+                        <h1 style="text-align: center">{{ blog.title }}</h1>
+                        {% if blog.type == 'blog' %}
                         <div class="blog-detail">
                             <span>{{ moment(blog.createtime).format('YYYY.MM.DD') }} •</span>
-                            <span>{{ blog.comments_count }} 条评论 •</span>
+                            <span>{{ comments_count }} 条评论 •</span>
                             <span>浏览 {{ blog.view_count }} 次</span>
                         </div>
+                        {% endif %}
                     </div>
 
                     <div class="blog-content">{{ blog.content_html | safe }}</div>
@@ -26,7 +29,7 @@
                         <div class="row">
                             <div class="col-md-4">
                                 <input class="form-control comment-input" name="name" type="text" placeholder="昵称"
-                                       value="{% if current_user.is_authenticated %}{{ current_user.username }}{% endif %}"
+                                       value="{% if current_user.is_authenticated %}{{ current_user.nickname }}{% endif %}"
                                        required>
                             </div>
                             <div class="col-md-4">
@@ -45,13 +48,13 @@
                         </div>
                     </form>
                 </div>
-                <h3 style="padding: 10px 0">已有{{ blog.comments_count }}条评论</h3>
-                <div class="media-list" style="margin-top: 10px">
-                    {% for c in blog.comments %}
+                <h3 style="padding: 10px">已有{{ blog.comments.count() }}条评论</h3>
+                <div class="media-list" style="margin: 10px auto 20px">
+                    {% for c in comments %}
                         {% if current_user.is_authenticated or not c.is_block %}
                             <li class="media">
                                 <div class="media-left">
-                                    <img src="https://cdn.v2ex.com/gravatar/{{ c.gravatar_id }}" class="img-circle"
+                                    <img src="https://cdn.v2ex.com/gravatar/{{ c.gravatar_id }}?default=monsterid" class="img-circle"
                                          height="50" width="50">
                                 </div>
                                 <div class="media-body">
@@ -84,10 +87,11 @@
                                         <p class="comment-body">{{ c.content }}</p>
                                     {% endif %}
                                     <div class="media-list" style="border-left: 0.5em solid #f0f0f0; padding-left: 1em; margin-top: 2em">
-                                        {% for r in c.replys %}
+                                        {% set replys = c.replys.order_by(Comment.createtime) %}
+                                        {% for r in replys %}
                                             <div class="media">
                                                 <div class="media-left">
-                                                    <img src="https://cdn.v2ex.com/gravatar/{{ r.gravatar_id }}"
+                                                    <img src="https://cdn.v2ex.com/gravatar/{{ r.gravatar_id }}?default=monsterid"
                                                          class="img-circle"
                                                          height="50" width="50">
                                                 </div>
@@ -110,10 +114,10 @@
                                                         <a id="{{ c.id }}" href="" class="reply" name="{{ r.name }}" onclick="return false">回复</a>
                                                         {% if current_user.is_authenticated %}
                                                             <span>|</span>
-                                                            <a href="{{ url_for('admin.reply_block', reply_id=r.id) }}">
+                                                            <a href="{{ url_for('admin.comment_block', comment_id=r.id) }}">
                                                                 {% if r.is_block %}恢复{% else %}隐藏{% endif %}</a>
                                                             <span>|</span>
-                                                            <a href="{{ url_for('admin.reply_delete', reply_id=r.id) }}">删除</a>
+                                                            <a href="{{ url_for('admin.comment_delete', comment_id=r.id) }}">删除</a>
                                                         {% endif %}
                                                     </div>
                                                     {% if r.is_block %}

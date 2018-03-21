@@ -43,16 +43,21 @@ class User(db.Model, ModelMixin, UserMixin):
     __tablename__ = 'users'
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(64), unique=True, index=True)
+    nickname = db.Column(db.String(64))
     password = db.Column(db.String(256))
     email = db.Column(db.String(256))
     website = db.Column(db.String(256))
+    title = db.Column(db.String(256))
+    gravatar_id = db.Column(db.String(64))
 
     def __init__(self, form):
         super(User, self).__init__()
         self.username = form.get('username', '')
+        self.nickname = form.get('nickname', '')
         self.password = form.get('password', '')
         self.email = form.get('email', '')
         self.website = form.get('website', '')
+        self.title = form.get('title', '')
 
     def password_to_hash(self):
         self.password = generate_password_hash(self.password)
@@ -62,6 +67,22 @@ class User(db.Model, ModelMixin, UserMixin):
 
     def save(self):
         self.password_to_hash()
+        self.gravatar_id = hashlib.md5(self.email.lower().encode('utf-8')).hexdigest()
+        db.session.add(self)
+        db.session.commit()
+
+    def update(self, user):
+        self.username = user.username
+        self.nickname = user.nickname
+        self.email = user.email
+        self.website = user.website
+        self.title = user.title
+        self.gravatar_id = hashlib.md5(user.email.lower().encode('utf-8')).hexdigest()
+        db.session.add(self)
+        db.session.commit()
+
+    def edit_password(self, password):
+        self.password = generate_password_hash(password)
         db.session.add(self)
         db.session.commit()
 
@@ -79,8 +100,8 @@ class Blog(db.Model, ModelMixin):
     summary_html = db.Column(db.Text)
     content = db.Column(db.Text)
     content_html = db.Column(db.Text)
+    type = db.Column(db.String(64), default='blog')
     view_count = db.Column(db.Integer, default=0)
-    comments_count = db.Column(db.Integer, default=0)
     createtime = db.Column(db.DateTime, index=True, default=datetime.utcnow)
     comments = db.relationship('Comment', backref='blog', lazy='dynamic')
     tags = db.relationship('Tag', secondary=association_table,
@@ -101,13 +122,14 @@ class Blog(db.Model, ModelMixin):
     def summary_to_html(target, value, oldvalue, initiator):
         target.summary_html = markdown(value)
 
-    def save(self, tags):
+    def save(self, tags='', blogtype='blog'):
         for tag in tags:
             t = Tag.query.filter_by(name=tag).first()
             if t is None:
                 t = Tag(tag)
                 t.save()
             self.tags.append(t)
+        self.type = blogtype
         db.session.add(self)
         db.session.commit()
 
@@ -118,10 +140,10 @@ class Blog(db.Model, ModelMixin):
         db.session.commit()
 
     def update(self, form):
-        self.title = form.get('title')
-        self.summary = form.get('summary')
-        self.content = form.get('content')
-        tags = Tag.str_to_list(form.get('tags'))
+        self.title = form.get('title', self.title)
+        self.summary = form.get('summary', self.summary)
+        self.content = form.get('content', self.content)
+        tags = Tag.str_to_list(form.get('tags', ''))
         for t in self.tags.all():
             if t.name not in tags:
                 self.tags.remove(t)
@@ -196,9 +218,11 @@ class Comment(db.Model, ModelMixin):
     content = db.Column(db.Text)
     gravatar_id = db.Column(db.String(64))
     is_block = db.Column(db.Boolean, default=False)
+    is_child = db.Column(db.Boolean, default=False)
     createtime = db.Column(db.DateTime, index=True, default=datetime.utcnow)
+    reply_id = db.Column(db.Integer, db.ForeignKey('comments.id'))
+    replys = db.relationship('Comment', lazy='dynamic')
     blog_id = db.Column(db.Integer, db.ForeignKey('blogs.id'))
-    replys = db.relationship('Reply', backref='comment', lazy='dynamic')
 
     def __init__(self, form):
         self.name = form.get('name', '')
@@ -206,18 +230,16 @@ class Comment(db.Model, ModelMixin):
         self.website = form.get('website', '')
         self.content = form.get('content', '')
 
-    def save(self, blog):
+    def save(self, blog, comment=None):
         self.blog_id = blog.id
         self.gravatar_id = hashlib.md5(self.email.lower().encode('utf-8')).hexdigest()
-        blog.comments_count += 1
+        if comment and comment.blog.id == blog.id:
+            self.reply_id = comment.id
+            self.is_child = True
         db.session.add(self)
-        db.session.add(blog)
         db.session.commit()
 
-    def delete(self, blog):
-        if not self.is_block:
-            blog.comments_count -= 1
-            db.session.add(blog)
+    def delete(self):
         db.session.delete(self)
         db.session.commit()
 
@@ -227,13 +249,16 @@ class Comment(db.Model, ModelMixin):
         db.session.commit()
 
     @staticmethod
-    def generate_fake(count=500):
+    def generate_fake(count=500, reply=False):
         import forgery_py
         from random import seed, randint
 
         seed()
-        blog_count = Blog.query.count()
-        if blog_count > 0:
+        blogs_count = Blog.query.count()
+        comments_count = Comment.query.count()
+        if blogs_count > 0:
+            blogs = Blog.query.all()
+            comments = Comment.query.all()
             for i in range(count):
                 d = dict(
                     name=forgery_py.name.full_name(),
@@ -242,67 +267,10 @@ class Comment(db.Model, ModelMixin):
                     content=forgery_py.lorem_ipsum.paragraph()
                 )
                 c = Comment(d)
-                blogs = Blog.query.all()
-                c.save(blogs[randint(0, blog_count-1)])
-
-
-class Reply(db.Model, ModelMixin):
-    __tablename__ = 'replys'
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(64))
-    email = db.Column(db.String(64))
-    website = db.Column(db.String(256))
-    content = db.Column(db.Text)
-    gravatar_id = db.Column(db.String(64))
-    is_block = db.Column(db.Boolean, default=False)
-    createtime = db.Column(db.DateTime, index=True, default=datetime.utcnow)
-    blog_id = db.Column(db.Integer, db.ForeignKey('blogs.id'))
-    comment_id = db.Column(db.Integer, db.ForeignKey('comments.id'))
-
-    def __init__(self, form):
-        self.name = form.get('name', '')
-        self.email = form.get('email', '')
-        self.website = form.get('website', '')
-        self.content = form.get('content', '')
-
-    def save(self, comment):
-        self.comment_id = comment.id
-        self.gravatar_id = hashlib.md5(self.email.lower().encode('utf-8')).hexdigest()
-        comment.blog.comments_count += 1
-        db.session.add(comment.blog)
-        db.session.add(self)
-        db.session.commit()
-
-    def delete(self, comment):
-        if not self.is_block:
-            comment.blog.comments_count -= 1
-            db.session.add(comment.blog)
-        db.session.delete(self)
-        db.session.commit()
-
-    def block(self):
-        self.is_block = not self.is_block
-        db.session.add(self)
-        db.session.commit()
-
-    @staticmethod
-    def generate_fake(count=500):
-        import forgery_py
-        from random import seed, randint
-
-        seed()
-        comment_count = Comment.query.count()
-        if comment_count > 0:
-            for i in range(count):
-                d = dict(
-                    name=forgery_py.name.full_name(),
-                    email=forgery_py.email.address(),
-                    website='http://' + forgery_py.internet.domain_name(),
-                    content=forgery_py.lorem_ipsum.paragraph()
-                )
-                r = Reply(d)
-                comments = Comment.query.all()
-                r.save(comments[randint(0, comment_count - 1)])
-
-
+                c.createtime = forgery_py.date.datetime(True, 0, 1000)
+                if reply:
+                    comment = comments[randint(0, comments_count - 1)]
+                    c.save(comment.blog, comment)
+                else:
+                    c.save(blogs[randint(0, blogs_count-1)])
 

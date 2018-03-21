@@ -14,22 +14,27 @@
                     {% endfor %}
                 </div>
                 <div style="margin: 25px 0">
-                    {% for b in blogs %}
-                        <div class="row">
-                        <div class="col-md-3">
-                        <p>{{ moment(b.createtime).format('YYYY年MM月DD日 ') }}</p>
-                        </div>
-                        <div class="col-md-9">
-                        <a href="{{ url_for('main.blog_view', blog_id=b.id) }}">{{ b.title }}</a>
-                        </div>
+                    {% for blogs in blogs_group %}
+                        <h3>{{ blogs[0] }}</h3>
+                        <div class="archives">
+                        {% for b in blogs[1] %}
+                            <div class="row">
+                                <div class="col-md-3">
+                                    <p>{{ moment(b.createtime).format('MM月DD日 ') }}</p>
+                                </div>
+                                <div class="col-md-9">
+                                    <p><a href="{{ url_for('main.blog_view', blog_id=b.id) }}">{{ b.title }}</a></p>
+                                </div>
 
+                            </div>
+                        {% endfor %}
                         </div>
                     {% endfor %}
                 </div>
 
-                <div class="pagebar">
-                    {{ macros.pagination_widget(pagination, 'main.archives_view') }}
-                </div>
+                {#                <div class="pagebar">#}
+                {#                    {{ macros.pagination_widget(pagination, 'main.archives_view') }}#}
+                {#                </div>#}
             </div>
         </div>
     </div>
