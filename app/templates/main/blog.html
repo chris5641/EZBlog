@@ -21,38 +21,12 @@
                     <div class="blog-content">{{ blog.content_html | safe }}</div>
 
                 </div>
-                <div id="comment-form">
-                    <h3>评论<span style="float: right"><a class="cancel-reply" href="" onclick="return false"
-                                                        style="font-size: 0.6em; font-weight: 400; display: none">取消回复</a></span>
-                    </h3>
-                    <form method="post" action="{{ url_for('main.comment_post', blog_id=blog.id) }}">
-                        <div class="row">
-                            <div class="col-md-4">
-                                <input class="form-control comment-input" name="name" type="text" placeholder="昵称"
-                                       value="{% if current_user.is_authenticated %}{{ current_user.nickname }}{% endif %}"
-                                       required>
-                            </div>
-                            <div class="col-md-4">
-                                <input class="form-control comment-input" name="email" type="email" placeholder="邮箱"
-                                       value="{% if current_user.is_authenticated %}{{ current_user.email }}{% endif %}"
-                                       required>
-                            </div>
-                            <div class="col-md-4">
-                                <input class="form-control comment-input" name="website" type="url" placeholder="网址"
-                                       value="{% if current_user.is_authenticated %}{{ current_user.website }}{% endif %}">
-                            </div>
-                            <div class="col-md-12">
-                            <textarea class="form-control" name="content" rows="4" placeholder="评论" required></textarea>
-                                <button class="btn btn-primary" type="submit" style="margin:10px; float:right;">发表</button>
-                            </div>
-                        </div>
-                    </form>
-                </div>
-                <h3 style="padding: 10px">已有{{ blog.comments.count() }}条评论</h3>
-                <div class="media-list" style="margin: 10px auto 20px">
+
+                <h3 style="padding: 10px 0">已有{{ blog.comments.count() }}条评论</h3>
+                <div class="media-list comment-list" style="margin: 10px auto 20px">
                     {% for c in comments %}
                         {% if current_user.is_authenticated or not c.is_block %}
-                            <li class="media">
+                            <div class="media">
                                 <div class="media-left">
                                     <img src="https://cdn.v2ex.com/gravatar/{{ c.gravatar_id }}?default=monsterid" class="img-circle"
                                          height="50" width="50">
@@ -78,7 +52,7 @@
                                             <a href="{{ url_for('admin.comment_block', comment_id=c.id) }}">
                                                 {% if c.is_block %}恢复{% else %}隐藏{% endif %}</a>
                                             <span>|</span>
-                                            <a href="{{ url_for('admin.comment_delete', comment_id=c.id) }}">删除</a>
+                                            <a class="comment-del" id="{{ c.id }}" href="#" onclick="return false">删除</a>
                                         {% endif %}
                                     </div>
                                     {% if c.is_block %}
@@ -86,7 +60,7 @@
                                     {% else %}
                                         <p class="comment-body">{{ c.content }}</p>
                                     {% endif %}
-                                    <div class="media-list" style="border-left: 0.5em solid #f0f0f0; padding-left: 1em; margin-top: 2em">
+                                    <div class="media-list" id="comment-{{ c.id }}" style="border-left: 0.5em solid #f0f0f0; padding-left: 1em; margin-top: 2em">
                                         {% set replys = c.replys.order_by(Comment.createtime) %}
                                         {% for r in replys %}
                                             <div class="media">
@@ -117,7 +91,7 @@
                                                             <a href="{{ url_for('admin.comment_block', comment_id=r.id) }}">
                                                                 {% if r.is_block %}恢复{% else %}隐藏{% endif %}</a>
                                                             <span>|</span>
-                                                            <a href="{{ url_for('admin.comment_delete', comment_id=r.id) }}">删除</a>
+                                                            <a class="comment-del" id="{{ c.id }}" href="#" onclick="return false">删除</a>
                                                         {% endif %}
                                                     </div>
                                                     {% if r.is_block %}
@@ -132,10 +106,40 @@
                                     </div>
                                 </div>
 
-                            </li>
+                            </div>
                         {% endif %}
 
                     {% endfor %}
+                </div>
+
+                <div id="comment-form">
+                    <h3>评论<span style="float: right"><a class="cancel-reply" href="" onclick="return false"
+                                                        style="font-size: 0.6em; font-weight: 400; display: none">取消回复</a></span>
+                    </h3>
+                    <form>
+                        <div class="row">
+                            <div class="col-sm-4">
+                                <input class="form-control comment-input" name="name" type="text" placeholder="昵称"
+                                       value="{% if current_user.is_authenticated %}{{ current_user.nickname }}{% endif %}"
+                                       required>
+                            </div>
+                            <div class="col-sm-4">
+                                <input class="form-control comment-input" name="email" type="email" placeholder="邮箱"
+                                       value="{% if current_user.is_authenticated %}{{ current_user.email }}{% endif %}"
+                                       required>
+                            </div>
+                            <div class="col-sm-4">
+                                <input class="form-control comment-input" name="website" type="url" placeholder="网址"
+                                       value="{% if current_user.is_authenticated %}{{ current_user.website }}{% endif %}">
+                            </div>
+                            <div class="col-sm-12">
+                                <textarea class="form-control" name="content" rows="4" placeholder="评论" required></textarea>
+                                <input type="hidden" id="blog-id" name="blog_id" value="{{ blog.id }}">
+                                <input type="hidden" id="reply-id" name="reply_id" value="0">
+                                <button class="btn btn-default submit-btn" type="button" style="width: 100%; margin: 10px 0">发表</button>
+                            </div>
+                        </div>
+                    </form>
                 </div>
 
             </div>
@@ -144,13 +148,42 @@
 {% endblock %}
 
 {% block script %}
+    <script src="http://ajax.microsoft.com/ajax/jquery.templates/beta1/jquery.tmpl.min.js"></script>
+    <script id="comment" type="text/x-jquery-tmpl">
+
+<div class="media">
+    <div class="media-left">
+        <img src="https://cdn.v2ex.com/gravatar/${ gravatar_id }?default=monsterid"
+             class="img-circle"
+             height="50" width="50">
+    </div>
+    <div class="media-body">
+        <h4 class="media-heading">
+            <span><a target="_blank" href="${ website }" rel="nofollow" class="title">${ name }</a></span>
+
+            {% if current_user.is_authenticated %}
+                <span><a href="mailto:${ email }"><i
+                        class="fa fa-envelope"></i></a></span>
+            {% endif %}
+        </h4>
+{#        <span style="color: gray;font-size: 0.9em">{{ moment(createtime).fromNow(refresh=True) }}</span>#}
+        <p class="comment-body">${ content }</p>
+
+    </div>
+</div>
+
+
+    </script>
     <script>
         var form = $('#comment-form');
         $(document).ready(function () {
+            $('table').addClass('table table-bordered table-striped');
+            
             $('.reply').click(function () {
                 var replyUrl = '/reply/post/' + $(this).attr('id');
                 form.find('form').attr('action', replyUrl);
                 form.find('textarea').val('@'+$(this).attr('name')+' ');
+                form.find('#reply-id').val($(this).attr('id'));
                 $('.cancel-reply').show();
                 $(this).parent().parent().after(form);
             });
@@ -159,10 +192,47 @@
                 $(this).hide();
                 var commentUrl = '/comment/post/' + {{ blog.id }};
                 form.find('form').attr('action', commentUrl);
-                $('.blog').after(form);
+                form.find('textarea').val('');
+                form.find('#reply-id').val('0');
+{#                $('.blog').after(form);#}
+                $('.comment-list').after(form);
+            });
+            
+            $('.submit-btn').click(function () {
+                $.ajax({
+                    url: '{{ url_for('api.comment_add') }}',
+                    data: $('form').serialize(),
+                    type: 'POST',
+                    dataType: 'json',
+                    success: function (data) {
+                        if (data['is_child']) {
+                            var id = '#comment-' + data['reply_id'];
+                            $('#comment').tmpl(data).appendTo(id);
+                            $('.form-control').val('');
+                        } else {
+                            $('#comment').tmpl(data).appendTo('.comment-list');
+                            $('.form-control').val('');
+                        }
+                    }
+                });
             });
 
-            $("table").addClass('table table-bordered table-striped')
+            $('.comment-del').click(function () {
+                var id = $(this).attr('id');
+                var self = $(this);
+                $.ajax({
+                    url: '/api/comments/' + id,
+                    type: 'DELETE',
+                    datatype: 'json',
+                    success: function (r) {
+                        if (r['status']) {
+                            self.closest('.media').remove();
+                        }
+                    }
+                });
+            });
+
+            
         });
     </script>
 {% endblock %}

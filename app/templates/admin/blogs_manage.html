@@ -15,14 +15,15 @@
             <tbody>
             {% for b in blogs %}
                 <tr>
-                    <th>{{ b.title }}</th>
+                    <th><a href="{{ url_for('main.blog_view', blog_id=b.id) }}">{{ b.title }}</a></th>
                     <th>{{ moment(b.createtime).format('YYYY-MM-DD') }}</th>
                     <th>
                         <a class="btn btn-success" data-toggle="modal" data-target="#editBlog-{{ b.id }}"><i
                                 class="fa fa-edit"></i> 编辑</a>
-
-                        <a href="{{ url_for('admin.blog_delete', blog_id=b.id) }}" class="btn btn-danger"
+                        {% if b.type == 'blog' %}
+                        <a href="#" class="btn btn-danger blog-del" id="{{ b.id }}" onclick="return false"
                            style="color: white"><i class="fa fa-trash"></i> 删除</a>
+                        {% endif %}
 
                         <!-- 模态框  -->
                         <div class="modal fade" id="editBlog-{{ b.id }}" tabindex="-1" role="dialog" aria-labelledby="editBlog"
@@ -81,4 +82,28 @@
         </div>
 
     </div>
+{% endblock %}
+
+{% block script %}
+    <script>
+        $(document).ready(function () {
+
+            $('.blog-del').click(function () {
+                var id = $(this).attr('id');
+                var self = $(this);
+
+                $.ajax({
+                    url: '/api/blogs/' + id,
+                    type: 'DELETE',
+                    datatype: 'json',
+                    success: function (r) {
+                        if (r['status']) {
+                            self.closest('tr').remove();
+                        }
+                    }
+                });
+            });
+
+        });
+    </script>
 {% endblock %}

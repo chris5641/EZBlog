@@ -10,8 +10,7 @@
                     &nbsp;评论了&nbsp;<a class="title" href="{{ url_for('main.blog_view', blog_id=c.blog.id) }}#{{ c.id }}"><strong>{{ c.blog.title }}</strong></a></p>
                 <p class="{% if c.is_block %}comment-body-blcok{% endif %}" style="margin-left: 10px">{{ c.content }}</p>
                 <span><i class="fa fa-calendar"></i> {{ moment(c.createtime).format("YYYY-MM-DD HH:mm") }}</span>
-                <a href="{{ url_for('admin.comment_delete', comment_id=c.id) }}"
-                   class="pull-right" style="margin: 0 5px;">删除</a>
+                <a class="comment-del pull-right" id="{{ c.id }}" href="#" onclick="return false" style="margin: 0 5px;">删除</a>
                     <a href="{{ url_for('admin.comment_block', comment_id=c.id) }}"
                        class="pull-right">{% if c.is_block %}恢复 |{% else %}隐藏 |{% endif %}</a>
             </div>
@@ -20,4 +19,28 @@
     <div class="pagebar">
         {{ macros.pagination_widget(pagination, 'admin.comments_manage') }}
     </div>
+{% endblock %}
+
+{% block script %}
+    <script>
+        $(document).ready(function () {
+
+            $('.comment-del').click(function () {
+                var id = $(this).attr('id');
+                var self = $(this);
+
+                $.ajax({
+                    url: '/api/comments/' + id,
+                    type: 'DELETE',
+                    datatype: 'json',
+                    success: function (r) {
+                        if (r['status']) {
+                            self.closest('.comment-manage').remove();
+                        }
+                    }
+                });
+            });
+
+        });
+    </script>
 {% endblock %}

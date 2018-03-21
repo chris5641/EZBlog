@@ -82,8 +82,6 @@ def account_manage():
 @login_required
 def comment_delete(comment_id):
     comment = Comment.query.get_or_404(comment_id)
-    blog_id = comment.blog_id
-    blog = Blog.query.get_or_404(blog_id)
     logging.info('delete comment: {}'.format(comment))
     for r in comment.replys:
         r.delete()

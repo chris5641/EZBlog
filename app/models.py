@@ -134,10 +134,11 @@ class Blog(db.Model, ModelMixin):
         db.session.commit()
 
     def delete(self):
-        for c in self.comments:
-            db.session.delete(c)
-        db.session.delete(self)
-        db.session.commit()
+        if self.type == 'blog':
+            for c in self.comments:
+                db.session.delete(c)
+            db.session.delete(self)
+            db.session.commit()
 
     def update(self, form):
         self.title = form.get('title', self.title)
@@ -242,6 +243,20 @@ class Comment(db.Model, ModelMixin):
     def delete(self):
         db.session.delete(self)
         db.session.commit()
+
+    def to_json(self):
+        data = {
+            'id': self.id,
+            'name': self.name,
+            'email': self.email,
+            'website': self.website,
+            'content': self.content,
+            'create_time': self.createtime,
+            'gravatar_id': self.gravatar_id,
+            'is_child': self.is_child,
+            'reply_id': self.reply_id,
+        }
+        return data
 
     def block(self):
         self.is_block = not self.is_block
