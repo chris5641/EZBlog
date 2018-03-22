@@ -92,23 +92,6 @@ def tag_view(tag_id):
     return render_template('main/index.html', blogs=blogs, tags=tags, pagination=pagination)
 
 
-@main.route('/comment/post/<blog_id>', methods=['POST'])
-def comment_post(blog_id):
-    comment = Comment(request.form)
-    blog = Blog.query.get_or_404(blog_id)
-    comment.save(blog)
-    logging.info('add comment: {}'.format(comment))
-    return redirect(url_for('main.blog_view', blog_id=blog_id))
-
-
-@main.route('/reply/post/<comment_id>', methods=['POST'])
-def reply_post(comment_id):
-    comment = Comment.query.get_or_404(comment_id)
-    reply = Comment(request.form)
-    reply.save(comment.blog, comment)
-    logging.info('add reply: {}'.format(reply))
-    return redirect(url_for('main.blog_view', blog_id=comment.blog_id))
-
 
 
 

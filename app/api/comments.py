@@ -1,9 +1,7 @@
 # -*- coding:utf-8 -*-
 import logging
 
-from flask import (
-    request, jsonify
-)
+from flask import request, jsonify
 from flask_login import login_required
 
 from . import api

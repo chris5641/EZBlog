@@ -124,7 +124,7 @@
                                        required>
                             </div>
                             <div class="col-sm-4">
-                                <input class="form-control comment-input" name="email" type="email" placeholder="邮箱"
+                                <input class="form-control comment-input validate[required]" name="email" type="email" placeholder="邮箱"
                                        value="{% if current_user.is_authenticated %}{{ current_user.email }}{% endif %}"
                                        required>
                             </div>
@@ -136,7 +136,7 @@
                                 <textarea class="form-control" name="content" rows="4" placeholder="评论" required></textarea>
                                 <input type="hidden" id="blog-id" name="blog_id" value="{{ blog.id }}">
                                 <input type="hidden" id="reply-id" name="reply_id" value="0">
-                                <button class="btn btn-default submit-btn" type="button" style="width: 100%; margin: 10px 0">发表</button>
+                                <button class="btn btn-default submit-btn" type="submit" style="width: 100%; margin: 10px 0">发表</button>
                             </div>
                         </div>
                     </form>
@@ -149,6 +149,7 @@
 
 {% block script %}
     <script src="http://ajax.microsoft.com/ajax/jquery.templates/beta1/jquery.tmpl.min.js"></script>
+
     <script id="comment" type="text/x-jquery-tmpl">
 
 <div class="media">
@@ -159,12 +160,8 @@
     </div>
     <div class="media-body">
         <h4 class="media-heading">
-            <span><a target="_blank" href="${ website }" rel="nofollow" class="title">${ name }</a></span>
+            <span>${ name }</span>
 
-            {% if current_user.is_authenticated %}
-                <span><a href="mailto:${ email }"><i
-                        class="fa fa-envelope"></i></a></span>
-            {% endif %}
         </h4>
 {#        <span style="color: gray;font-size: 0.9em">{{ moment(createtime).fromNow(refresh=True) }}</span>#}
         <p class="comment-body">${ content }</p>
@@ -198,7 +195,7 @@
                 $('.comment-list').after(form);
             });
             
-            $('.submit-btn').click(function () {
+            form.submit(function () {
                 $.ajax({
                     url: '{{ url_for('api.comment_add') }}',
                     data: $('form').serialize(),
@@ -215,6 +212,7 @@
                         }
                     }
                 });
+                return false;
             });
 
             $('.comment-del').click(function () {

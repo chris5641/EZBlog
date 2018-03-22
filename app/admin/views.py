@@ -34,15 +34,6 @@ def blog_post(blogtype='blogs'):
     return redirect(url_for('main.blog_view', blog_id=blog.id))
 
 
-@admin.route('/blog/delete/<blog_id>')
-@login_required
-def blog_delete(blog_id):
-    blog = Blog.query.get_or_404(blog_id)
-    logging.info('delete blog: {}'.format(blog))
-    blog.delete()
-    return redirect(request.referrer)
-
-
 @admin.route('/blog/edit/<blog_id>', methods=['POST'])
 @login_required
 def blog_edit(blog_id):
