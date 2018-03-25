@@ -12,6 +12,40 @@
     {{ moment.include_moment('2.20.1', '//cdn.bootcss.com/moment.js/2.20.1/moment-with-locales.min.js') }}
     {{ moment.lang("zh-CN") }}
     {% block css %}{% endblock %}
+<style>
+    .back-to-top {
+        position: fixed;
+        bottom: 3em;
+        right: 3em;
+        text-decoration: none;
+        color: transparent;
+        background-color: transparent;
+        padding: 1em;
+        width: 3.5em;
+        height: 3.5em;
+        text-align: center;
+        display: none;
+    	border-radius: 100%;
+        border: 1px solid #CCCCCC;
+    }
+
+    .back-to-top:hover {
+        background-color: #f55852;
+        color: white;
+        border: none;
+        -webkit-transition: all .4s;
+        -moz-transition: all .4s;
+        -o-transition: all .4s;
+        transition: all .4s;
+    }
+</style>
+
+    <style>
+        html{height:100%;}
+        body{min-height:100%;margin:0;padding:0;position:relative;}
+        .container{padding-bottom:100px;}
+        footer{position:absolute;bottom:0;width:100%;height:80px;}
+    </style>
 
     <title>{% block title %}{{ User.query.first().title }}{% endblock %}</title>
 </head>
@@ -20,13 +54,13 @@
 
 <div class="container">
     <div class="row">
-        <div class="col-md-8 col-md-offset-2">
+        <div class="col-xs-12 col-md-8 col-md-offset-2">
             <header>
                 <div class="navbar-header">
-                    <button type="button" class="navbar-toggle collapsed" data-toggle="collapse"
-                            data-target="#bs-example-navbar-collapse-1" aria-expanded="false">
+                    <button type="button" class="navbar-toggle collapsed btn-col" data-toggle="collapse"
+                            data-target="#bs-example-navbar-collapse-1" aria-expanded="false">MENU
                     </button>
-                    <a href="/"><img src="https://cdn.v2ex.com/gravatar/{{ User.query.first().gravatar_id }}" class="img-circle" style="height: 50px"></a>
+                    <a href="/"><img src="https://cdn.v2ex.com/gravatar/{{ User.query.first().gravatar_id }}" class="img-circle avatar" style="height: 50px"></a>
                 </div>
 
                 <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
@@ -42,33 +76,55 @@
                                aria-expanded="false">{{ current_user.nickname }}<span class="caret"></span></a>
                             <ul class="dropdown-menu">
                                 <li><a href="{{ url_for('admin.index') }}">管理</a></li>
-                                <li><a href="#">Another action</a></li>
-                                <li><a href="#">Something else here</a></li>
                                 <li role="separator" class="divider"></li>
-                                <li><a href="/logout">logout</a></li>
+                                <li><a href="{{ url_for('admin.logout') }}">退出登录</a></li>
                             </ul>
                         </li>
-                    {% else %}
-                        <li class="nav-item"><a href="/login" class="nav-link">登录</a></li>
                     {% endif %}
                 </ul>
                 </div>
             </header>
         </div>
     </div>
-</div>
+
 
 {% block container %}{% endblock %}
-
-<footer style="background-color: black">
+</div>
+<footer style="margin-top: 20px; padding-top:20px; background-color: #fafafa;">
     <div class="row">
         <div class="col-md-12">
-            <h3>hello</h3>
+            <div class="text-center">
+                <span>Copyright © 2018 </span>
+                <a href="/" style="font-weight: 400">{{ current_user.title }}</a>
+            </div>
+            <div class="text-center">
+                <span>Powered by </span>
+                <a target="_blank" href="http://flask.pocoo.org/" style="font-weight: 400">Flask</a>
+                <span> • </span>
+                <span>Hosted on </span>
+                <a target="_blank" href="https://cloud.tencent.com/redirect.php?redirect=1001&cps_key=8982e0f2fb0045a166e74f04fd571505" style="font-weight: 400">Tencent Cloud</a>
+            </div>
         </div>
     </div>
+    <a href="#" class="back-to-top"><i class="fa fa-arrow-up"></i></a>
 </footer>
 
+<script>
+    $(document).ready(function () {
+        $(window).scroll(function () {
+            if ($(this).scrollTop() > 150) {
+                $('.back-to-top').fadeIn(100);
+            } else {
+                $('.back-to-top').fadeOut(100);
+            }
+        });
 
+        $('.back-to-top').click(function (event) {
+            event.preventDefault();
+            $('html, body').animate({scrollTop: 0}, 500);
+        })
+    });
+</script>
 {% block script %}{% endblock %}
 </body>
 

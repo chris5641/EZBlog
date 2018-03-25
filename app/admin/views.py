@@ -4,17 +4,36 @@ import logging
 from flask import (
     render_template, request, redirect, url_for, abort, flash
 )
-from flask_login import login_required
+from flask_login import login_user, logout_user, login_required
 
 from ..models import User, Blog, Tag, Comment
 from . import admin
-from .. import db
+
+
+@admin.route('/logout/')
+@login_required
+def logout():
+    logout_user()
+    return redirect(request.referrer)
+
+
+@admin.route('/login/', methods=['POST'])
+def login():
+    user = User(request.form)
+    u = User.query.filter_by(username=user.username).first()
+    if u is not None and u.verify_password(user.password):
+        login_user(u)
+        logging.info('log in: {}'.format(u))
+        return redirect(url_for('admin.index'))
+    else:
+        flash('账号或密码错误')
+        return redirect(url_for('main.login_view'))
 
 
 @admin.route('/')
 @login_required
 def index():
-    return render_template('admin/index.html')
+    return redirect(url_for('admin.blog_post_view'))
 
 
 @admin.route('/blog-post')
@@ -25,7 +44,7 @@ def blog_post_view():
 
 @admin.route('/blog/post', methods=['POST'])
 @login_required
-def blog_post(blogtype='blogs'):
+def blog_post(blogtype='blog'):
     r = request.form
     blog = Blog(r)
     tags = Tag.str_to_list(r.get('tags'))

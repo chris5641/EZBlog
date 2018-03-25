@@ -4,8 +4,8 @@ import logging
 from flask import (
     render_template, request, url_for, redirect, abort, current_app
 )
-from flask_login import login_user, logout_user, login_required
 from sqlalchemy import extract, func, desc
+from flask_login import current_user
 
 from ..models import Blog, User, Tag, Comment
 from . import main
@@ -24,25 +24,9 @@ def index():
 
 @main.route('/login/')
 def login_view():
+    if current_user.is_authenticated:
+        return redirect(url_for('admin.index'))
     return render_template('admin/login.html')
-
-
-@main.route('/logout/')
-@login_required
-def logout():
-    logout_user()
-    return redirect(request.referrer)
-
-
-@main.route('/login', methods=['POST'])
-def login():
-    user = User(request.form)
-    u = User.query.filter_by(username=user.username).first()
-    if u is not None and u.verify_password(user.password):
-        login_user(u)
-        logging.info('log in: {}'.format(u))
-        return redirect(url_for('main.index'))
-    abort(404)
 
 
 @main.route('/blogs/<blog_id>')

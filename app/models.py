@@ -2,6 +2,7 @@
 import logging
 import hashlib
 from datetime import datetime
+from threading import Timer
 
 import mistune
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -10,8 +11,42 @@ from pygments import highlight
 from pygments.lexers import get_lexer_by_name
 from pygments.formatters import html
 
-from . import db
+from . import db, red
 from . import login_manager
+
+
+class Scheduler(object):
+    def __init__(self, sleep_time, func):
+        self.sleep_time = sleep_time
+        self.func = func
+        self._t = None
+
+    def start(self):
+        if self._t is None:
+            self._t = Timer(self.sleep_time, self._run)
+            self._t.start()
+        else:
+            raise Exception('Timer is already running!')
+
+    def _run(self):
+        self.func()
+        self._t = Timer(self.sleep_time, self._run)
+        self._t.start()
+
+    def stop(self):
+        if self._t is not None:
+            self._t.cancel()
+            self._t = None
+
+
+def sync_to_sql():
+    blogs = Blog.query.all()
+    logging.info('Syncing blogs!')
+    for b in blogs:
+        count = red.get('view_count:{}'.format(b.id))
+        if count is not None:
+            b.sync(int(count))
+    logging.info('Syncd blogs!')
 
 
 class HighlightRenderer(mistune.Renderer):
@@ -85,6 +120,17 @@ class User(db.Model, ModelMixin, UserMixin):
         self.password = generate_password_hash(password)
         db.session.add(self)
         db.session.commit()
+
+    @staticmethod
+    def insert_user():
+        d = dict(
+            username='admin',
+            password='admin',
+            nickname='admin',
+            title='EZBlog',
+        )
+        u = User(d)
+        u.save()
 
 
 @login_manager.user_loader
@@ -162,16 +208,52 @@ class Blog(db.Model, ModelMixin):
         db.session.commit()
 
     def click(self):
-        self.view_count += 1
+        count = red.get('view_count:{}'.format(self.id))
+        if count is None:
+            red.set('view_count:{}'.format(self.id), self.view_count)
+            count = self.view_count
+        red.incr('view_count:{}'.format(self.id))
+        count = int(count)
+        if (count + 1) % 100 == 0:
+            self.view_count = count + 1
+            db.session.add(self)
+            db.session.commit()
+            red.delete('view_count:{}'.format(self.id))
+
+    def get_view_count(self):
+        if red.exists('view_count:{}'.format(self.id)):
+            return int(red.get('view_count:{}'.format(self.id)))
+        else:
+            return self.view_count
+
+    def sync(self, count):
+        self.view_count = count
         db.session.add(self)
         db.session.commit()
+
+    @staticmethod
+    def insert_blog():
+        about = dict(
+            title='关于',
+            summary='',
+            content='',
+        )
+        project = dict(
+            title='项目',
+            summary='',
+            content='',
+        )
+        b = Blog(about)
+        b.save(blogtype='about')
+        b = Blog(project)
+        b.save(blogtype='project')
 
     @staticmethod
     def generate_fake(count=50):
         from random import seed, randint, sample
         import forgery_py
         tag_list = [
-            'Python', 'JavaScript', '前端', '后端', '感悟', 'C', '算法', 'LeetCode', 'others', 'Docker', '爬虫'
+            'Python', 'JavaScript', '前端', '后端', '感悟', 'C', '算法', 'JAVA', 'others', 'Docker', '爬虫'
         ]
 
         seed()
@@ -181,7 +263,7 @@ class Blog(db.Model, ModelMixin):
                 summary=forgery_py.lorem_ipsum.paragraph(),
                 content=forgery_py.lorem_ipsum.paragraphs(quantity=randint(4, 10), sentences_quantity=randint(3, 8)),
             )
-            tags = sample(tag_list, randint(0, 4))
+            tags = sample(tag_list, randint(1, 4))
             b = Blog(d)
             b.createtime = forgery_py.date.datetime(True, 0, 1000)
             b.save(tags)

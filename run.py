@@ -1,15 +1,20 @@
 # -*- coding:utf-8 -*-
+import os
+
 from flask_script import Manager, Shell
 from flask_migrate import Migrate, MigrateCommand
 from flask_moment import Moment
 
-from app import create_app, db
-from app.models import User, Blog, Comment, Tag
+from app import create_app, db, red
+from app.models import User, Blog, Comment, Tag, Scheduler, sync_to_sql
 
-app = create_app()
+app = create_app(os.getenv('config') or 'default')
+
 manager = Manager(app)
 migrate = Migrate(app, db)
 moment = Moment(app)
+
+scheduler = Scheduler(app.config['SYNC_PERIOD'], sync_to_sql)
 
 
 def make_shell_context():
@@ -23,43 +28,29 @@ app.jinja_env.globals['Comment'] = Comment
 app.jinja_env.globals['Blog'] = Blog
 app.jinja_env.globals['User'] = User
 app.jinja_env.globals['Tag'] = Tag
+app.jinja_env.globals['red'] = red
 
 
 def build_db():
-    print('start build database')
     db.drop_all()
     db.create_all()
-    admin = dict(
-        username='admin',
-        password='admin',
-        nickname='admin',
-        email='wangchong9139@gmail.com',
-        website='https://www.baidu.com',
-        title='EZBlog',
-    )
-    about = dict(
-        title='关于',
-        summary='',
-        content='',
-    )
-    project = dict(
-        title='项目',
-        summary='',
-        content='',
-    )
-    u = User(admin)
-    u.save()
-    b = Blog(about)
-    b.save(blogtype='about')
-    b = Blog(project)
-    b.save(blogtype='project')
+    User.insert_user()
+    Blog.insert_blog()
+    red.flushall()
+    print('build database OK')
+
+
+def test_data():
+    print('start generate fake data')
     Blog.generate_fake()
     Comment.generate_fake()
     Comment.generate_fake(reply=True)
-
-    print('build database OK')
+    print('generate fake data ok!')
 
 
 if __name__ == '__main__':
     # build_db()
+    # test_data()
+    # scheduler.start()
     manager.run()
+
