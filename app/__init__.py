@@ -15,8 +15,6 @@ login_manager = LoginManager()
 login_manager.session_protection = 'strong'
 login_manager.login_view = 'main.login_view'
 
-red = redis.Redis(host='localhost', port=6379, db=1)
-
 
 def create_app(config_name):
     app = Flask(__name__)
@@ -27,6 +25,7 @@ def create_app(config_name):
     db.app = app
     login_manager.init_app(app)
     app.permanent_session_lifetime = datetime.timedelta(hours=3)
+    app.red = redis.Redis().from_url(config[config_name].REDIS_URL)
 
     from .main import main as main_blueprint
     from .admin import admin as admid_blueprint

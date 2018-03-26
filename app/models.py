@@ -5,13 +5,14 @@ from datetime import datetime
 from threading import Timer
 
 import mistune
+from flask import current_app
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_login import UserMixin
 from pygments import highlight
 from pygments.lexers import get_lexer_by_name
 from pygments.formatters import html
 
-from . import db, red
+from . import db
 from . import login_manager
 
 
@@ -43,7 +44,7 @@ def sync_to_sql():
     blogs = Blog.query.all()
     logging.info('Syncing blogs!')
     for b in blogs:
-        count = red.get('view_count:{}'.format(b.id))
+        count = current_app.red.get('view_count:{}'.format(b.id))
         if count is not None:
             b.sync(int(count))
     logging.info('Syncd blogs!')
@@ -127,6 +128,8 @@ class User(db.Model, ModelMixin, UserMixin):
             username='admin',
             password='admin',
             nickname='admin',
+            email='',
+            website='',
             title='EZBlog',
         )
         u = User(d)
@@ -208,21 +211,21 @@ class Blog(db.Model, ModelMixin):
         db.session.commit()
 
     def click(self):
-        count = red.get('view_count:{}'.format(self.id))
+        count = current_app.red.get('view_count:{}'.format(self.id))
         if count is None:
-            red.set('view_count:{}'.format(self.id), self.view_count)
+            current_app.red.set('view_count:{}'.format(self.id), self.view_count)
             count = self.view_count
-        red.incr('view_count:{}'.format(self.id))
+        current_app.red.incr('view_count:{}'.format(self.id))
         count = int(count)
         if (count + 1) % 100 == 0:
             self.view_count = count + 1
             db.session.add(self)
             db.session.commit()
-            red.delete('view_count:{}'.format(self.id))
+            current_app.red.delete('view_count:{}'.format(self.id))
 
     def get_view_count(self):
-        if red.exists('view_count:{}'.format(self.id)):
-            return int(red.get('view_count:{}'.format(self.id)))
+        if current_app.red.exists('view_count:{}'.format(self.id)):
+            return int(current_app.red.get('view_count:{}'.format(self.id)))
         else:
             return self.view_count
 
@@ -243,17 +246,24 @@ class Blog(db.Model, ModelMixin):
             summary='',
             content='',
         )
+        hello = dict(
+            title='Hello Wrold',
+            summary='你好世界！这篇是由EZBlog自动生成，欢迎使用！',
+            content='你好世界！这篇是由EZBlog自动生成，欢迎使用！',
+        )
         b = Blog(about)
         b.save(blogtype='about')
         b = Blog(project)
         b.save(blogtype='project')
+        b = Blog(hello)
+        b.save()
 
     @staticmethod
     def generate_fake(count=50):
         from random import seed, randint, sample
         import forgery_py
         tag_list = [
-            'Python', 'JavaScript', '前端', '后端', '感悟', 'C', '算法', 'JAVA', 'others', 'Docker', '爬虫'
+            'Python', 'JavaScript', '前端', '后端', '感悟', 'C', '算法', 'LeetCode', 'others', 'Docker', '爬虫'
         ]
 
         seed()
@@ -263,7 +273,7 @@ class Blog(db.Model, ModelMixin):
                 summary=forgery_py.lorem_ipsum.paragraph(),
                 content=forgery_py.lorem_ipsum.paragraphs(quantity=randint(4, 10), sentences_quantity=randint(3, 8)),
             )
-            tags = sample(tag_list, randint(1, 4))
+            tags = sample(tag_list, randint(0, 4))
             b = Blog(d)
             b.createtime = forgery_py.date.datetime(True, 0, 1000)
             b.save(tags)

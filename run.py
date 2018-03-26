@@ -5,7 +5,7 @@ from flask_script import Manager, Shell
 from flask_migrate import Migrate, MigrateCommand
 from flask_moment import Moment
 
-from app import create_app, db, red
+from app import create_app, db
 from app.models import User, Blog, Comment, Tag, Scheduler, sync_to_sql
 
 app = create_app(os.getenv('config') or 'default')
@@ -28,18 +28,20 @@ app.jinja_env.globals['Comment'] = Comment
 app.jinja_env.globals['Blog'] = Blog
 app.jinja_env.globals['User'] = User
 app.jinja_env.globals['Tag'] = Tag
-app.jinja_env.globals['red'] = red
+app.jinja_env.globals['red'] = app.red
 
 
+@manager.command
 def build_db():
     db.drop_all()
     db.create_all()
     User.insert_user()
     Blog.insert_blog()
-    red.flushall()
+    app.red.flushall()
     print('build database OK')
 
 
+@manager.command
 def test_data():
     print('start generate fake data')
     Blog.generate_fake()
@@ -51,6 +53,6 @@ def test_data():
 if __name__ == '__main__':
     # build_db()
     # test_data()
-    # scheduler.start()
+    scheduler.start()
     manager.run()
 

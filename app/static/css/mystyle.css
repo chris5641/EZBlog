@@ -42,15 +42,15 @@ a:hover {
 }
 
 .blog-title {
-    font-size: 2em;
-    text-align: center;
+    font-size: 2.2em;
+    /*text-align: center;*/
     margin-top: 1em;
     font-weight: 400;
 }
 
 .blog-detail {
     font-size: 1em;
-    text-align: center;
+    /*text-align: center;*/
     padding-bottom: 0.8em;
     color: gray;
 }
