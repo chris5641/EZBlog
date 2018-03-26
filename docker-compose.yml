@@ -1,0 +1,30 @@
+version: '3'
+services:
+
+  web:
+    build: .
+    ports:
+      - "5000:5000"
+    depends_on:
+      - db
+      - red
+    links:
+      - db:mysql
+      - red:redis
+    volumes:
+      - .:/code
+    env_file: web.env
+    command: supervisord -n -c /code/supervisord.conf
+    restart: always
+
+  db:
+    image: mysql:5.7
+    restart: always
+    volumes:
+      - ./mysql/conf:/etc/mysql/conf.d
+      - ./mysql/db:/var/lib/mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+
+  red:
+    image: redis:4.0
