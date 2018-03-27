@@ -9,7 +9,6 @@ from ..models import Comment, Blog
 
 
 @api.route('/comments/', methods=['POST'])
-@login_required
 def comment_add():
     form = request.form
     reply = None

@@ -53,10 +53,15 @@ def sync_to_sql():
 class HighlightRenderer(mistune.Renderer):
     def block_code(self, code, lang):
         if not lang:
-            return'\n<pre><code>{}</code></pre>\n'.format(mistune.escape(code))
-        lexer = get_lexer_by_name(lang, stripall=True)
-        formatter = html.HtmlFormatter()
-        return highlight(code, lexer, formatter)
+            return '\n<pre><code>{}</code></pre>\n'.format(mistune.escape(code))
+        # noinspection PyBroadException
+        try:
+            lexer = get_lexer_by_name(lang, stripall=True)
+            formatter = html.HtmlFormatter(noclasses=False, linenos=False)
+            return highlight(code, lexer, formatter)
+        except Exception as e:
+            logging.error(e)
+            return '<pre class="{}"><code>{}</code></pre>\n'.format(lang, mistune.escape(code))
 
 
 renderer = HighlightRenderer()
