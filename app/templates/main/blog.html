@@ -1,12 +1,4 @@
 {% extends 'base.html' %}
-{% block css %}
-    <style>
-    img[alt="picture"] {
-    max-width: 100%;
-    height: auto;
-}
-    </style>
-{% endblock %}
 {% block title %}{{ blog.title }}{% endblock %}
 {% block container %}
     {% set comments_count = blog.comments.count() %}
