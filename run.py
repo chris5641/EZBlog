@@ -5,16 +5,14 @@ from flask_script import Manager, Shell
 from flask_migrate import Migrate, MigrateCommand
 from flask_moment import Moment
 
-from app import create_app, db
-from app.models import User, Blog, Comment, Tag, Scheduler, sync_to_sql
+from app import create_app, db, scheduler
+from app.models import User, Blog, Comment, Tag
 
 app = create_app(os.getenv('config') or 'default')
 
 manager = Manager(app)
 migrate = Migrate(app, db)
 moment = Moment(app)
-
-scheduler = Scheduler(app.config['SYNC_PERIOD'], sync_to_sql)
 
 
 def make_shell_context():

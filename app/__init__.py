@@ -6,6 +6,7 @@ import datetime
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager
+from flask_apscheduler import APScheduler
 
 from config import config
 
@@ -14,6 +15,8 @@ pymysql.install_as_MySQLdb()
 login_manager = LoginManager()
 login_manager.session_protection = 'strong'
 login_manager.login_view = 'main.login_view'
+
+scheduler = APScheduler()
 
 
 def create_app(config_name):
@@ -34,5 +37,7 @@ def create_app(config_name):
     app.register_blueprint(main_blueprint)
     app.register_blueprint(admid_blueprint, url_prefix='/admin')
     app.register_blueprint(api_blueprint, url_prefix='/api')
+
+    scheduler.init_app(app)
 
     return app

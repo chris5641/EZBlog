@@ -20,7 +20,15 @@ class Config:
         'redis://{}:6379/1'.format('red')
 
     # REMEMBER_COOKIE_DURATION = datetime.timedelta(hours=2)
-    SYNC_PERIOD = 24 * 60 * 60
+
+    JOBS = [
+        {
+            'id': 'job1',
+            'func': 'app.models:sync_to_database',
+            'trigger': 'interval',
+            'seconds': 60 * 60 * 24
+        }
+    ]
 
     @staticmethod
     def init_app(app):

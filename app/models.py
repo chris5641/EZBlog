@@ -16,38 +16,15 @@ from . import db
 from . import login_manager
 
 
-class Scheduler(object):
-    def __init__(self, sleep_time, func):
-        self.sleep_time = sleep_time
-        self.func = func
-        self._t = None
-
-    def start(self):
-        if self._t is None:
-            self._t = Timer(self.sleep_time, self._run)
-            self._t.start()
-        else:
-            raise Exception('Timer is already running!')
-
-    def _run(self):
-        self.func()
-        self._t = Timer(self.sleep_time, self._run)
-        self._t.start()
-
-    def stop(self):
-        if self._t is not None:
-            self._t.cancel()
-            self._t = None
-
-
-def sync_to_sql():
-    blogs = Blog.query.all()
-    logging.info('Syncing blogs!')
-    for b in blogs:
-        count = current_app.red.get('view_count:{}'.format(b.id))
-        if count is not None:
-            b.sync(int(count))
-    logging.info('Syncd blogs!')
+def sync_to_database():
+    with db.app.app_context():
+        blogs = Blog.query.all()
+        logging.info('Syncing blogs!')
+        for b in blogs:
+            count = current_app.red.get('view_count:{}'.format(b.id))
+            if count is not None:
+                b.sync(int(count))
+        logging.info('Syncd blogs!')
 
 
 class HighlightRenderer(mistune.Renderer):
